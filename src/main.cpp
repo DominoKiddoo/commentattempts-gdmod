@@ -83,7 +83,7 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 				int attempts = infoLayer->m_level->m_attempts;
 
 				std::string oldComment = m_descText;
-				std::string newComment = m_descText + " (" + geode::utils::numToString(attempts) + " att)"; // idk if i can use fmt::format here cuz i need to use {} in the actual string lol
+				std::string newComment = fmt::format("{}({} att)", m_descText, geode::utils::numToString(attempts));
 				log::info("new TUFF comment: {}", newComment);
 				m_descText = newComment;
 
