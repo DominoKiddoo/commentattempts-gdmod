@@ -87,7 +87,7 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 				log::info("new TUFF comment: {}", newComment);
 				m_descText = newComment;
 
-				if (m_descText.length() > m_charLimit) {
+				if (m_descText.size() > m_charLimit) {
 					geode::createQuickPopup(
 						"Uh Oh!",
 						"Your comment is <cr>too long</c> to post with <cy>your attempt count embedded</c>. Please <cb>go back and edit your comment</c> or <cg>post without attempt count</c>",
