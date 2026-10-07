@@ -5,13 +5,15 @@
 #include <Geode/modify/CommentCell.hpp>
 #include <regex>
 #include <string>
+#include "popup.hpp"
+#include "sharedVars.hpp"
+
 
 using namespace geode::prelude;
 
 class $modify(MyShareCommentLayer, ShareCommentLayer) {
 
 	struct Fields {
-		bool m_addPercent = false;
 		bool m_ignoreAttempts;
 	};
 
@@ -19,59 +21,46 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 		if (!ShareCommentLayer::init(title, charLimit, type, ID,  desc)) return false;
 
 		if (type == CommentType::Level) {
-			log::info("skibidi skibidi toiler");
-			auto bg = m_mainLayer->getChildByType<CCScale9Sprite>();
-			bg->setContentHeight(153);
-			bg->setPositionY(bg->getPositionY() - 12);
-
-
-			auto label = CCLabelBMFont::create("Attempts", "chatFont.fnt");
-			label->setScale(0.8f);
-			label->setOpacity(125);
-			label->setColor(ccColor3B(0, 0, 0));
-			m_mainLayer->addChild(label);
-			label->setID("attemptCheckboxLabel"_spr);
-			label->setAnchorPoint(CCPoint(0, 0.5f));
-			label->setPosition(CCPoint(118, 170));
-
-
-			auto toggleSpr1 = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
-			auto toggleSpr2 = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
-			toggleSpr1->setScale(0.6f); toggleSpr2->setScale(0.6f);
-
-			CCMenuItemToggler* attToggle = CCMenuItemExt::createTogglerWithStandardSprites(
-				0.6f,
-				[this, label](CCMenuItemToggler* sender) {
-					auto on = !sender->isToggled();
-					log::info("on: {}", on);
-					m_fields->m_addPercent = on;
-					if (on) {
-						label->setColor(ccColor3B(255, 255, 255));
-						label->setOpacity(255);
-
-						LevelInfoLayer* infoLayer = CCDirector::get()->getRunningScene()->getChildByType<LevelInfoLayer>();
-						if (!infoLayer) return;
-						label->setString(fmt::format("{} Attempts", infoLayer->m_level->m_attempts).c_str());
-					} else {
-						label->setColor(ccColor3B(0, 0, 0));
-						label->setOpacity(125);
-						label->setString("Attempts");
-					}
-				});
+			sEnabledAttempts = false;
+			sEnabledPercent = false;
 			
-			attToggle->toggle(false);
-			attToggle->setID("attemptToggle"_spr);
-			m_buttonMenu->addChild(attToggle);
-			attToggle->setPosition(CCPoint(-180, 10.5));
-			attToggle->setID("attemptToggle"_spr);
+			auto originalToggle = m_buttonMenu->getChildByType<CCMenuItemToggler>();
+			if (!originalToggle) return true;
 
+			originalToggle->setVisible(false);
+				
+			
+
+			
+			if (!m_percentLabel) return true;
+			m_percentLabel->setVisible(false);
+			
+
+			CCSprite* buttonSprite = CCSprite::createWithSpriteFrameName("accountBtn_settings_001.png");
+			buttonSprite->setScale(0.4f);
+			auto extraSettingsButton = CCMenuItemSpriteExtra::create( 
+				buttonSprite,
+				this,
+				menu_selector(MyShareCommentLayer::onMoreSettings)
+			);
+
+			m_buttonMenu->addChild(extraSettingsButton);
+			extraSettingsButton->setID("extraSettingsButton"_spr);
+			extraSettingsButton->setPosition(originalToggle->getPosition());
 		}
 
 		return true;
 	}
 
+	void onMoreSettings(CCObject* sender) {
+		auto popup = ExtraCommentSettingsPopup::create();
+		popup->show();
+	}
+
 	void onShare(CCObject* sender) {
-		if (m_commentType == CommentType::Level && m_fields->m_addPercent == true) {
+
+		if (m_commentType == CommentType::Level && sEnabledAttempts == true) {
+			m_percentEnabled = sEnabledPercent;
 			if (m_fields->m_ignoreAttempts == true) {
 				ShareCommentLayer::onShare(sender);
 				m_fields->m_ignoreAttempts = false;
@@ -84,7 +73,6 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 
 				std::string oldComment = m_descText;
 				std::string newComment = fmt::format("{}({} att)", m_descText, geode::utils::numToString(attempts));
-				log::info("new TUFF comment: {}", newComment);
 				m_descText = newComment;
 
 				if (m_descText.size() > m_charLimit) {
@@ -155,9 +143,7 @@ class $modify(MyCommentCell, CommentCell) {
 		std::string commentText = comment->m_commentString;
 		std::smatch match;
 		
-		if (std::regex_search(commentText, match, attRegex)) {
-			log::info("comment contains attempts! match {}", match[0].str());
-			
+		if (std::regex_search(commentText, match, attRegex)) {			
 			commentText.erase(match[0].first, match[0].second);
 			comment->m_commentString = commentText;
 			std::string matchString = match[0].str();

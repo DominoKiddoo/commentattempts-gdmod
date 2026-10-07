@@ -1,5 +1,5 @@
 {
-	"geode": "5.10.0",
+	"geode": "5.10.1",
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
@@ -8,7 +8,7 @@
 	},
 	"id": "dominodev.comment-attempts",
 	"name": "Comment Attempts",
-	"version": "v1.0.0",
+	"version": "v1.0.1",
 	"developer": "dominodev",
 	"description": "Add your attempt count to comments, like you can with percent!",
 	"dependencies": {
