@@ -72,7 +72,7 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 				int attempts = infoLayer->m_level->m_attempts;
 
 				std::string oldComment = m_descText;
-				std::string newComment = fmt::format("{}({} att)", m_descText, geode::utils::numToString(attempts));
+				std::string newComment = fmt::format("{} ({} att)", m_descText, geode::utils::numToString(attempts));
 				m_descText = newComment;
 
 				if (m_descText.size() > m_charLimit) {
@@ -98,7 +98,7 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 			
 		} else if (m_commentType == CommentType::Level){
 
-			std::regex attRegex(R"(\((\d+) att\))");
+			std::regex attRegex(R"(\s*\((\d+) att\))");
 			std::string commentText = m_descText;
 			std::smatch match;
 		
@@ -121,45 +121,53 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 class $modify(MyCommentCell, CommentCell) {
 
 	static void onModify(ModifyBase<ModifyDerive<MyCommentCell, CommentCell>>& self) {
-        (void)self.setHookPriorityBeforePost("CommentCell::loadFromComment", "thesillydoggo.comment_emojis"); // this was stolen from hiimjustin000.developer_badges
-        (void)self.setHookPriorityBeforePost("CommentCell::loadFromComment", "prevter.comment_emojis"); // this was stolen from hiimjustin000.developer_badges
-		(void)self.setHookPriorityBeforePost("CommentCell::loadFromComment", "hiimjustin000.developer_badges");
+        (void) self.setHookPriorityBeforePost("CommentCell::loadFromComment", "thesillydoggo.comment_emojis"); // this was stolen from hiimjustin000.developer_badges
+        (void) self.setHookPriorityBeforePost("CommentCell::loadFromComment", "prevter.comment_emojis"); // this was stolen from hiimjustin000.developer_badges
+		(void) self.setHookPriorityBeforePost("CommentCell::loadFromComment", "hiimjustin000.developer_badges");
+		(void) self.setHookPriority("CommentCell::loadFromComment", geode::Priority::LastPost);
     }
 
 
 	void loadFromComment(GJComment* comment) {
-		if (!comment) {
+		if (!comment || comment->m_isSpam) {
 			CommentCell::loadFromComment(comment);
 			return;
 		}
+		std::regex attRegex(R"(\s*\((\d+) att\))");
+		std::string commentText = comment->m_commentString;
+		std::smatch match;
 
+		bool hasAttempts = false;
+		std::string matchCount = "";
+
+		if (std::regex_search(commentText, match, attRegex)) {
+			hasAttempts = true;
+			matchCount = match[1].str();
+			commentText.erase(match[0].first, match[0].second);
+			comment->m_commentString = commentText;
+    	}
 
 		CommentCell::loadFromComment(comment);
 
 		auto usernameMenu = m_mainLayer->querySelector("main-menu > user-menu > username-menu");
 		if (!usernameMenu) return;
 
-		std::regex attRegex(R"(\((\d+) att\))");
-		std::string commentText = comment->m_commentString;
-		std::smatch match;
-		
-		if (std::regex_search(commentText, match, attRegex)) {			
-			commentText.erase(match[0].first, match[0].second);
-			comment->m_commentString = commentText;
-			std::string matchString = match[0].str();
-			
-			auto toSet = match[1].str() + " attempts";
-			auto attemptLabel = CCLabelBMFont::create(toSet.c_str(), "chatFont.fnt");
-			attemptLabel->setColor(ccColor3B(0, 0, 0));
-			attemptLabel->setID("attemptLabel"_spr);
-			attemptLabel->setOpacity(150);
-			attemptLabel->setScale(0.480);
-			usernameMenu->addChild(attemptLabel);
-			usernameMenu->updateLayout();
+				
+		if (hasAttempts) {
+			auto usernameMenu = m_mainLayer->querySelector("main-menu > user-menu > username-menu");
+			if (usernameMenu) {
+				auto toSet = matchCount + " attempts";
+				auto attemptLabel = CCLabelBMFont::create(toSet.c_str(), "chatFont.fnt");
 
-			
-		}
-		
+				attemptLabel->setColor(ccColor3B(0, 0, 0));
+				attemptLabel->setID("attemptLabel"_spr);
+				attemptLabel->setOpacity(150);
+				attemptLabel->setScale(0.480f);
+
+				usernameMenu->addChild(attemptLabel);
+				usernameMenu->updateLayout();
+			}
+		}		
 	}
 
 };
