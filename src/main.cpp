@@ -127,24 +127,33 @@ class $modify(MyCommentCell, CommentCell) {
 		(void) self.setHookPriority("CommentCell::loadFromComment", geode::Priority::LastPost);
     }
 
+	struct Fields {
+		bool m_hasAttempts = false;
+	};
+
 
 	void loadFromComment(GJComment* comment) {
+
+		
 		if (!comment || comment->m_isSpam) {
 			CommentCell::loadFromComment(comment);
 			return;
 		}
+
+		log::info("LOADED");
+
 		std::regex attRegex(R"(\s*\((\d+) att\))");
 		std::string commentText = comment->m_commentString;
 		std::smatch match;
 
-		bool hasAttempts = false;
 		std::string matchCount = "";
 
+
 		if (std::regex_search(commentText, match, attRegex)) {
-			hasAttempts = true;
+			m_fields->m_hasAttempts = true;
 			matchCount = match[1].str();
-			commentText.erase(match[0].first, match[0].second);
-			comment->m_commentString = commentText;
+			// commentText.erase(match[0].first, match[0].second);
+			// comment->m_commentString = commentText;
     	}
 
 		CommentCell::loadFromComment(comment);
@@ -152,22 +161,23 @@ class $modify(MyCommentCell, CommentCell) {
 		auto usernameMenu = m_mainLayer->querySelector("main-menu > user-menu > username-menu");
 		if (!usernameMenu) return;
 
+
 				
-		if (hasAttempts) {
+		if (m_fields->m_hasAttempts) {
+			log::info("username menu AND has attempts!");
 			auto usernameMenu = m_mainLayer->querySelector("main-menu > user-menu > username-menu");
-			if (usernameMenu) {
-				auto toSet = matchCount + " attempts";
-				auto attemptLabel = CCLabelBMFont::create(toSet.c_str(), "chatFont.fnt");
+			auto toSet = matchCount + " attempts";
+			auto attemptLabel = CCLabelBMFont::create(toSet.c_str(), "chatFont.fnt");
 
-				attemptLabel->setColor(ccColor3B(0, 0, 0));
-				attemptLabel->setID("attemptLabel"_spr);
-				attemptLabel->setOpacity(150);
-				attemptLabel->setScale(0.480f);
+			attemptLabel->setColor(ccColor3B(0, 0, 0));
+			attemptLabel->setID("attemptLabel"_spr);
+			attemptLabel->setOpacity(150);
+			attemptLabel->setScale(0.480f);
 
-				usernameMenu->addChild(attemptLabel);
-				usernameMenu->updateLayout();
-			}
+			usernameMenu->addChild(attemptLabel);
+			usernameMenu->updateLayout();			
 		}		
 	}
+
 
 };

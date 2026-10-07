@@ -1,3 +1,6 @@
+# 1.0.3
+- Fixed bug with pagination
+
 # 1.0.2
 - Fixed issue with not having 'Emojis In Comments' installed
 
