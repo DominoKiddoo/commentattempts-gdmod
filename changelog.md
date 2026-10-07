@@ -1,3 +1,6 @@
+# 1.0.4
+- Fixed bug with attempts displaying in the actual comment
+
 # 1.0.3
 - Fixed bug with pagination
 

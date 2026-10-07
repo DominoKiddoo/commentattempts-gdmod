@@ -98,7 +98,7 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 			
 		} else if (m_commentType == CommentType::Level){
 
-			std::regex attRegex(R"(\s*\((\d+) att\))");
+			std::regex attRegex(R"(\((\d+) att\))");
 			std::string commentText = m_descText;
 			std::smatch match;
 		
@@ -142,7 +142,7 @@ class $modify(MyCommentCell, CommentCell) {
 
 		log::info("LOADED");
 
-		std::regex attRegex(R"(\s*\((\d+) att\))");
+		std::regex attRegex(R"(\((\d+) att\))");
 		std::string commentText = comment->m_commentString;
 		std::smatch match;
 
@@ -152,8 +152,8 @@ class $modify(MyCommentCell, CommentCell) {
 		if (std::regex_search(commentText, match, attRegex)) {
 			m_fields->m_hasAttempts = true;
 			matchCount = match[1].str();
-			// commentText.erase(match[0].first, match[0].second);
-			// comment->m_commentString = commentText;
+			commentText.erase(match[0].first, match[0].second);
+			comment->m_commentString = commentText;
     	}
 
 		CommentCell::loadFromComment(comment);
