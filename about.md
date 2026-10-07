@@ -1,6 +1,6 @@
 # Comment Attempts
 
-Lets you comment your <cy>attempt count</c>, just like you can with your <cg>percentag</c>.  
+Lets you comment your <cy>attempt count</c>, just like you can with your <cg>percentage</c>.  
 Just tick the box <cb>underneath</c> the % toggle, and you're <cp>good to go</c>!
 
 ## Bugs
