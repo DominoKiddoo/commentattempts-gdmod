@@ -110,6 +110,8 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 			
 			ShareCommentLayer::onShare(sender);
 
+		} else {
+			ShareCommentLayer::onShare(sender);
 		}
 		
 		
@@ -133,8 +135,6 @@ class $modify(MyCommentCell, CommentCell) {
 
 
 	void loadFromComment(GJComment* comment) {
-
-		
 		if (!comment || comment->m_isSpam) {
 			CommentCell::loadFromComment(comment);
 			return;

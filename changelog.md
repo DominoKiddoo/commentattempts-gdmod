@@ -1,3 +1,6 @@
+# 1.0.5
+- Fixed bug where you couldnt share any other type of comment
+
 # 1.0.4
 - Fixed bug with attempts displaying in the actual comment
 

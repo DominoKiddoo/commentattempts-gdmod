@@ -8,7 +8,7 @@
 	},
 	"id": "dominodev.comment-attempts",
 	"name": "Comment Attempts",
-	"version": "v1.0.4",
+	"version": "v1.0.5",
 	"developer": "dominodev",
 	"description": "Add your attempt count to comments, like you can with percent!",
 	"dependencies": {
