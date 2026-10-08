@@ -1,3 +1,6 @@
+# 1.0.6
+- Update 1.0.5 reintroduced the bug from update 1.0.4, so update 1.0.6 fixes that. 
+
 # 1.0.5
 - Fixed bug where you couldnt share any other type of comment
 

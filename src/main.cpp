@@ -3,6 +3,8 @@
 #include <Geode/modify/ShareCommentLayer.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/CommentCell.hpp>
+#include <Geode/modify/GJComment.hpp>
+
 #include <regex>
 #include <string>
 #include "popup.hpp"
@@ -120,6 +122,15 @@ class $modify(MyShareCommentLayer, ShareCommentLayer) {
 
 };
 
+
+class $modify(MyGJComment, GJComment) {
+    struct Fields {
+        std::string m_savedAttempts = "";
+        bool m_hasProcessed = false;
+    };
+};
+
+
 class $modify(MyCommentCell, CommentCell) {
 
 	static void onModify(ModifyBase<ModifyDerive<MyCommentCell, CommentCell>>& self) {
@@ -129,10 +140,6 @@ class $modify(MyCommentCell, CommentCell) {
 		(void) self.setHookPriority("CommentCell::loadFromComment", geode::Priority::LastPost);
     }
 
-	struct Fields {
-		bool m_hasAttempts = false;
-	};
-
 
 	void loadFromComment(GJComment* comment) {
 		if (!comment || comment->m_isSpam) {
@@ -140,33 +147,45 @@ class $modify(MyCommentCell, CommentCell) {
 			return;
 		}
 
-		log::info("LOADED");
+		auto cComment = static_cast<MyGJComment*>(comment);
+
+		std::string originalString = comment->m_commentString;
+		
 
 		std::regex attRegex(R"(\((\d+) att\))");
-		std::string commentText = comment->m_commentString;
 		std::smatch match;
 
 		std::string matchCount = "";
 
+		if (!cComment->m_fields->m_hasProcessed) {
+			if (std::regex_search(originalString, match, attRegex)) {
+				cComment->m_fields->m_savedAttempts = match[1].str();
+				
+				matchCount = match[1].str();
+				std::string fixedText = originalString;
+				fixedText.erase(match.position(0), match.length(0));
 
-		if (std::regex_search(commentText, match, attRegex)) {
-			m_fields->m_hasAttempts = true;
-			matchCount = match[1].str();
-			commentText.erase(match[0].first, match[0].second);
-			comment->m_commentString = commentText;
-    	}
+				comment->m_commentString = fixedText;
+
+			}
+			cComment->m_fields->m_hasProcessed = true;
+		}
+
 
 		CommentCell::loadFromComment(comment);
+
 
 		auto usernameMenu = m_mainLayer->querySelector("main-menu > user-menu > username-menu");
 		if (!usernameMenu) return;
 
-
+		if (auto existingLabel = usernameMenu->getChildByID("attemptLabel"_spr)) {
+            existingLabel->removeFromParent();
+        }
 				
-		if (m_fields->m_hasAttempts) {
+		if (!cComment->m_fields->m_savedAttempts.empty()) {
 			log::info("username menu AND has attempts!");
 			auto usernameMenu = m_mainLayer->querySelector("main-menu > user-menu > username-menu");
-			auto toSet = matchCount + " attempts";
+			auto toSet = cComment->m_fields->m_savedAttempts + " attempts";
 			auto attemptLabel = CCLabelBMFont::create(toSet.c_str(), "chatFont.fnt");
 
 			attemptLabel->setColor(ccColor3B(0, 0, 0));
@@ -175,7 +194,7 @@ class $modify(MyCommentCell, CommentCell) {
 			attemptLabel->setScale(0.480f);
 
 			usernameMenu->addChild(attemptLabel);
-			usernameMenu->updateLayout();			
+			usernameMenu->updateLayout();	
 		}		
 	}
 
